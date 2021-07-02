@@ -206,6 +206,35 @@ class HeadlessInAppWebView implements WebView {
     return MapSize.fromMap(sizeMap);
   }
 
+  Future<Uint8List?> capture() async {
+    if (!_running) {
+      return null;
+    }
+    return _channel.invokeMethod('capture', {});
+  }
+
+  Future<void> loadData(
+      {required String data,
+      String mimeType = "text/html",
+      String encoding = "utf8",
+      Uri? baseUrl,
+      Uri? androidHistoryUrl,
+      Uri? iosAllowingReadAccessTo}) async {
+    assert(iosAllowingReadAccessTo == null ||
+        iosAllowingReadAccessTo.isScheme("file"));
+
+    Map<String, dynamic> args = <String, dynamic>{};
+    args.putIfAbsent('data', () => data);
+    args.putIfAbsent('mimeType', () => mimeType);
+    args.putIfAbsent('encoding', () => encoding);
+    args.putIfAbsent('baseUrl', () => baseUrl?.toString() ?? "about:blank");
+    args.putIfAbsent(
+        'historyUrl', () => androidHistoryUrl?.toString() ?? "about:blank");
+    args.putIfAbsent(
+        'allowingReadAccessTo', () => iosAllowingReadAccessTo?.toString());
+    await _channel.invokeMethod('loadData', args);
+  }
+
   @override
   final InAppWebViewInitialData? initialData;
 

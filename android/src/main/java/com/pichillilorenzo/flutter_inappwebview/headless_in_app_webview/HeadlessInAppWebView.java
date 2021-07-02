@@ -1,5 +1,9 @@
 package com.pichillilorenzo.flutter_inappwebview.headless_in_app_webview;
 
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.os.Build;
+import android.util.Base64;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -11,7 +15,9 @@ import com.pichillilorenzo.flutter_inappwebview.InAppWebViewFlutterPlugin;
 import com.pichillilorenzo.flutter_inappwebview.Util;
 import com.pichillilorenzo.flutter_inappwebview.in_app_webview.FlutterWebView;
 import com.pichillilorenzo.flutter_inappwebview.types.Size2D;
+import com.pichillilorenzo.flutter_inappwebview.types.URLRequest;
 
+import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -57,6 +63,32 @@ public class HeadlessInAppWebView implements MethodChannel.MethodCallHandler {
         {
           Size2D size = getSize();
           result.success(size != null ? size.toMap() : null);
+        }
+        break;
+      case "loadData":
+        String data = (String) call.argument("data");
+        String mimeType = (String) call.argument("mimeType");
+        String encoding = (String) call.argument("encoding");
+        String baseUrl = (String) call.argument("baseUrl");
+        String historyUrl = (String) call.argument("historyUrl");
+        this.flutterWebView.webView.loadDataWithBaseURL(baseUrl, data, mimeType, encoding, historyUrl);
+        result.success(true);
+        break;
+      case "capture":
+        {
+          float scale = this.flutterWebView.webView.getScale();
+          int width = this.flutterWebView.webView.getWidth();
+          int height = (int) (this.flutterWebView.webView.getContentHeight() * scale + 0.5);
+          Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
+          Canvas canvas = new Canvas(bitmap);
+          this.flutterWebView.webView.draw(canvas);
+          ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+          bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO) {
+            result.success(byteArrayOutputStream .toByteArray());
+          } else {
+            result.notImplemented();
+          }
         }
         break;
       default:

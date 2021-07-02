@@ -21,6 +21,8 @@
 
 package com.pichillilorenzo.flutter_inappwebview.headless_in_app_webview;
 
+import android.os.Build;
+
 import androidx.annotation.Nullable;
 
 import com.pichillilorenzo.flutter_inappwebview.InAppWebViewFlutterPlugin;
@@ -45,6 +47,9 @@ public class HeadlessInAppWebViewManager implements MethodChannel.MethodCallHand
     this.plugin = plugin;
     channel = new MethodChannel(plugin.messenger, "com.pichillilorenzo/flutter_headless_inappwebview");
     channel.setMethodCallHandler(this);
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+      android.webkit.WebView.enableSlowWholeDocumentDraw();
+    }
   }
 
   @Override
